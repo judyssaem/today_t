@@ -200,7 +200,7 @@
     gap: 8px;
     aspect-ratio: 5 / 2;
     width: 100%;
-    max-width: 500px;
+    max-width: min(500px, 60vh);
     margin: 0 auto;
   }
   .cell {
@@ -256,7 +256,7 @@
     padding: 12px 8px;
   }
   .bond-svg {
-    width: 100%; max-width: 300px; height: auto;
+    width: 100%; max-width: min(300px, 38vh); height: auto;
     display: block;
   }
   .bond-rect {
@@ -296,7 +296,7 @@
   .num-cards-wrap {
     margin: 12px auto 0;
     width: 100%;
-    max-width: 380px;
+    max-width: min(380px, 48vh);
   }
   .num-cards {
     display: grid;
@@ -722,6 +722,31 @@
   @media (max-width: 500px) {
     header h1 { font-size: 28px; }
     .panel h2 { font-size: 18px; }
+  }
+
+  /* 데스크탑이지만 viewport 높이가 작은 경우 (일반 브라우저 모드) */
+  @media (min-width: 861px) and (max-height: 850px) {
+    header { padding: 14px 16px 8px; }
+    header h1 { font-size: 32px; }
+    header p { font-size: 20px; margin: 4px 0 0; }
+    main { padding: 8px 24px 56px; }
+    .panel { padding: 10px 14px; }
+    .panel h2 { font-size: 18px; margin: 0 0 6px; }
+    .ten-frame-wrap { padding: 8px 12px; margin-top: 8px; }
+    .btn-check { height: 44px; font-size: 17px; }
+
+    /* 활동 방법 모달도 컴팩트하게 (스크롤 방지) */
+    .guide-card {
+      padding: 24px 28px 22px;
+    }
+    .guide-header { margin-bottom: 14px; }
+    .guide-header h2 { font-size: 26px; }
+    .guide-close { width: 34px; height: 34px; font-size: 14px; }
+    .guide-steps { gap: 10px; }
+    .guide-step { padding: 14px 22px; gap: 14px; border-radius: 18px; }
+    .step-num { font-size: 34px; width: 42px; }
+    .step-icon { font-size: 28px; }
+    .step-text { font-size: 32px; line-height: 1.35; }
   }
 </style>
 </head>
