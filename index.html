@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌱 도란도란 10 모으기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== 디자인 토큰 (Design Tokens) ===== */
+  :root {
+    --cream-bg:      #FFFBF0;
+    --cream-deep:    #FFF4D6;
+    --leaf-light:    #E8F5D8;
+    --leaf-mid:      #B8E0A0;
+    --leaf-deep:     #7CB342;
+    --sprout:        #9CCC65;
+    --sprout-soft:   #DCEDC8;
+    --sun-yellow:    #FFE082;
+    --berry-pink:    #F8BBD0;
+    --berry-deep:    #EC407A;
+    --soil-brown:    #8D6E63;
+    --dark-text:     #3E2723;
+    --shadow-leaf:   0 4px 0 #8FBC72;
+    --shadow-soft:   0 4px 12px rgba(124,179,66,0.18);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: 'Jua', sans-serif;
+    color: var(--dark-text);
+    background: var(--cream-bg);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(156,204,101,0.10) 0, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(255,224,130,0.18) 0, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(184,224,160,0.07) 0, transparent 60%);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+  }
+  header { flex-shrink: 0; }
+
+  /* 떠다니는 잎 배경 장식 */
+  .bg-deco {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .bg-deco span {
+    position: absolute;
+    font-size: 28px;
+    opacity: 0.35;
+    animation: floatLeaf 14s ease-in-out infinite;
+  }
+  .bg-deco span:nth-child(1){ top:8%;  left:4%;  animation-delay: 0s;  }
+  .bg-deco span:nth-child(2){ top:18%; right:6%; animation-delay: 2s;  font-size:22px;}
+  .bg-deco span:nth-child(3){ bottom:12%;left:8%; animation-delay: 4s; }
+  .bg-deco span:nth-child(4){ bottom:6%; right:12%;animation-delay: 6s; font-size:32px;}
+  .bg-deco span:nth-child(5){ top:50%;  left:2%;  animation-delay: 8s; font-size:20px;}
+  .bg-deco span:nth-child(6){ top:65%;  right:2%; animation-delay: 10s;font-size:24px;}
+  @keyframes floatLeaf {
+    0%,100% { transform: translateY(0) rotate(-8deg); }
+    50%     { transform: translateY(-22px) rotate(8deg); }
+  }
+
+  /* ===== 헤더 ===== */
+  header {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 28px 16px 12px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 40px;
+    color: var(--leaf-deep);
+    text-shadow: 2px 2px 0 #fff, 3px 3px 0 var(--leaf-mid);
+    letter-spacing: 1px;
+  }
+  header h1 .sprout { display:inline-block; }
+  header p {
+    margin: 6px 0 0;
+    color: var(--soil-brown);
+    font-size: 27px;
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+  }
+
+  /* ===== 메인 레이아웃 ===== */
+  main {
+    position: relative; z-index: 1;
+    flex: 1 1 auto;
+    min-height: 0;                  /* flex item이 자식 콘텐츠로 늘어나지 않게 */
+    overflow: hidden;               /* 한 화면 안에 가둠 */
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 20px;
+    max-width: 1500px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 14px 24px 60px;
+    align-content: center;
+  }
+  @media (max-width: 860px) {
+    /* 모바일/태블릿 세로: 1단 + 스크롤 허용 */
+    html, body { height: auto; overflow: auto; }
+    main { grid-template-columns: 1fr; align-content: start; overflow: visible; padding: 8px 14px 90px; }
+  }
+
+  .panel {
+    background: #fff;
+    border: 3px solid var(--leaf-mid);
+    border-radius: 22px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow-leaf);
+    position: relative;
+  }
+  .panel h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: var(--leaf-deep);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    text-align: center;
+  }
+
+  /* ===== 카테고리 탭 ===== */
+  .cat-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;
+  }
+  .cat-tabs button {
+    flex: 1 1 auto;
+    min-width: 60px;
+    border: 2px solid var(--leaf-mid);
+    background: var(--cream-deep);
+    color: var(--soil-brown);
+    font-family: 'Jua', sans-serif;
+    font-size: 17px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform .12s, background .12s;
+  }
+  .cat-tabs button:hover { transform: translateY(-2px); }
+  .cat-tabs button.active {
+    background: var(--sprout);
+    color: #fff;
+    border-color: var(--leaf-deep);
+    box-shadow: 0 3px 0 var(--leaf-deep);
+  }
+
+  /* ===== 이미지 팔레트 ===== */
+  .palette {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    background: var(--leaf-light);
+    border-radius: 16px;
+    padding: 8px;
+    min-height: 60px;
+  }
+  @media (max-width: 600px) {
+    .palette { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .palette-item {
+    aspect-ratio: 1 / 1;
+    background: #fff;
+    border: 2px solid var(--leaf-mid);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(26px, 3.4vw, 42px);
+    cursor: grab;
+    transition: transform .1s, box-shadow .1s;
+    touch-action: none;
+  }
+  .palette-item:hover {
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: 0 4px 0 var(--sprout);
+  }
+  .palette-item:active { cursor: grabbing; }
+
+  /* ===== 10 배열판 ===== */
+  .ten-frame-wrap {
+    margin-top: 10px;
+    background: linear-gradient(180deg, var(--leaf-light), var(--sprout-soft));
+    border-radius: 18px;
+    padding: 10px 14px;
+    border: 2px dashed var(--leaf-mid);
+  }
+  .ten-frame {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    aspect-ratio: 5 / 2;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .cell {
+    background: #fff;
+    border: 3px dashed var(--leaf-mid);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(28px, 4.4vw, 56px);
+    transition: background .15s, border .15s, transform .15s, box-shadow .15s;
+    cursor: pointer;
+  }
+  .cell.filled {
+    background: var(--cream-deep);
+    border-style: solid;
+    border-color: var(--leaf-deep);
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.04);
+  }
+  .cell.snap-target {
+    background: var(--berry-pink) !important;
+    border-style: solid;
+    border-color: var(--berry-deep);
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4px rgba(236,64,122,0.25);
+  }
+  .cell.filled:active { transform: scale(0.94); }
+
+  /* ===== 컨트롤 버튼 ===== */
+  .controls {
+    display: flex; justify-content: center; gap: 10px; margin-top: 8px;
+  }
+  .btn-reset {
+    font-family: 'Jua', sans-serif;
+    font-size: 16px;
+    padding: 8px 18px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    transition: transform .1s;
+    background: var(--berry-pink);
+    color: var(--berry-deep);
+    box-shadow: 0 4px 0 var(--berry-deep);
+  }
+  .btn-reset:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--berry-deep);
+  }
+
+  /* ===== 모으기판 ===== */
+  .bond-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    background: var(--cream-deep);
+    border-radius: 16px;
+    padding: 12px 8px;
+  }
+  .bond-svg {
+    width: 100%; max-width: 300px; height: auto;
+    display: block;
+  }
+  .bond-rect {
+    fill: #fff;
+    stroke: var(--leaf-deep);
+    stroke-width: 4;
+    cursor: pointer;
+    transition: fill .15s, stroke-width .15s;
+  }
+  .bond-rect:hover { fill: var(--leaf-light); }
+  .bond-rect.active {
+    fill: var(--sun-yellow);
+    stroke: var(--berry-deep);
+    stroke-width: 6;
+    animation: pulseBond 1.2s ease-in-out infinite;
+  }
+  @keyframes pulseBond {
+    0%,100% { filter: drop-shadow(0 0 0 rgba(236,64,122,0.0)); }
+    50%     { filter: drop-shadow(0 0 8px rgba(236,64,122,0.5)); }
+  }
+  .bond-line {
+    stroke: var(--leaf-deep);
+    stroke-width: 4;
+    stroke-linecap: round;
+    fill: none;
+  }
+  .bond-text {
+    font-family: 'Jua', sans-serif;
+    font-size: 56px;
+    fill: var(--dark-text);
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+  }
+
+  /* ===== 숫자 카드 (1~10 드래그용) ===== */
+  .num-cards-wrap {
+    margin: 12px auto 0;
+    width: 100%;
+    max-width: 380px;
+  }
+  .num-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);   /* 5×2 배열 */
+    gap: 10px;
+    background: var(--cream-deep);
+    border-radius: 16px;
+    padding: 12px;
+  }
+  .num-card {
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(180deg, #fff 0%, #FFFBF0 100%);
+    border: 2.5px solid var(--leaf-mid);
+    border-radius: 14px;
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(26px, 3.8vw, 40px);
+    color: var(--leaf-deep);
+    cursor: grab;
+    box-shadow: 0 3px 0 var(--leaf-mid);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform .12s, box-shadow .12s, background .12s;
+    touch-action: none;
+    user-select: none;
+    position: relative;
+  }
+  .num-card::before {
+    /* 카드 살짝 위쪽 광택 */
+    content: "";
+    position: absolute;
+    top: 4px; left: 8px; right: 8px;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.6);
+  }
+  .num-card:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 5px 0 var(--sprout);
+    background: linear-gradient(180deg, #fff 0%, var(--leaf-light) 100%);
+  }
+  .num-card:active { cursor: grabbing; }
+
+  /* ===== 확인 버튼 (숫자 카드 아래 풀폭) ===== */
+  .btn-check {
+    display: block;
+    margin: 10px auto 0;
+    width: 100%;
+    max-width: 380px;
+    height: 46px;
+    background: linear-gradient(180deg, var(--sprout) 0%, var(--leaf-deep) 100%);
+    color: #fff;
+    border: 2px solid var(--leaf-deep);
+    border-radius: 14px;
+    box-shadow: 0 4px 0 #5b8a2f;
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform .1s, box-shadow .1s, filter .1s;
+  }
+  .btn-check:hover { filter: brightness(1.06); }
+  .btn-check:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #5b8a2f;
+  }
+
+  /* 모으기판 박스에 드래그 호버 시 자석 하이라이트 */
+  .bond-rect.snap-target {
+    fill: var(--berry-pink);
+    stroke: var(--berry-deep);
+    stroke-width: 7;
+    transform-origin: center;
+    transform: scale(1.04);
+  }
+
+  /* ===== 드래그 고스트 ===== */
+  .drag-ghost {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+    background: #fff;
+    border: 3px solid var(--leaf-deep);
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(124,179,66,0.4);
+    transform: translate(-50%, -50%) scale(1.1);
+    transition: none;
+  }
+
+  /* ===== 축하 효과 ===== */
+  .celebrate-banner {
+    position: fixed; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    pointer-events: none; z-index: 1000;
+  }
+  .celebrate-banner.show { display: flex; }
+  .celebrate-banner .msg {
+    background: linear-gradient(135deg, var(--sun-yellow), var(--sprout));
+    color: var(--dark-text);
+    font-family: 'Jua', sans-serif;
+    font-size: 42px;
+    padding: 24px 48px;
+    border-radius: 28px;
+    border: 4px solid #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    animation: popIn .6s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.4) rotate(-10deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  .confetti {
+    position: fixed; top: -20px;
+    font-size: 26px;
+    pointer-events: none; z-index: 999;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0.2; }
+  }
+
+  /* ===== 💡 활동 방법 버튼 (화면 우측 하단 고정) ===== */
+  .btn-guide {
+    position: fixed;
+    bottom: 16px; right: 16px;
+    font-family: 'Jua', sans-serif;
+    font-size: 14px;
+    border: 2.5px solid #fff;
+    border-radius: 18px;
+    padding: 7px 14px 7px 12px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4px;
+    /* 십 배열판과 같은 연두 톤 */
+    background: linear-gradient(180deg, var(--sprout) 0%, var(--leaf-deep) 100%);
+    color: #fff;
+    box-shadow: 0 4px 0 #5b8a2f, 0 6px 18px rgba(0,0,0,0.18);
+    z-index: 100;
+    transition: filter .15s, box-shadow .15s;
+  }
+  .btn-guide:hover { filter: brightness(1.08); }
+  .btn-guide:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #5b8a2f;
+  }
+  .btn-guide .bulb {
+    display: inline-block;
+  }
+  @media (max-width: 500px) {
+    .btn-guide .label { display: none; }
+    .btn-guide { padding: 7px 10px; font-size: 16px; }
+  }
+
+  /* ===== ✕ 앱 닫기 버튼 (우측 상단 원형) ===== */
+  .btn-close {
+    position: fixed;
+    top: 16px; right: 16px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--sprout) 0%, var(--leaf-deep) 100%);
+    color: #fff;
+    border: 2.5px solid #fff;
+    font-family: 'Jua', sans-serif;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #5b8a2f, 0 6px 18px rgba(0,0,0,0.18);
+    z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    line-height: 1;
+    transition: filter .15s, box-shadow .15s, transform .15s;
+  }
+  .btn-close:hover { filter: brightness(1.08); transform: scale(1.05); }
+  .btn-close:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #5b8a2f;
+  }
+
+  /* ===== 활동 방법 모달 ===== */
+  .guide-modal {
+    position: fixed; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    z-index: 1050;
+    background: rgba(62, 39, 35, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .guide-modal.show { display: flex; }
+  .guide-card {
+    background: var(--cream-bg);
+    border: 4px solid var(--sprout);
+    border-radius: 32px;
+    padding: 40px 40px 36px;
+    width: 100%; max-width: 1100px;      /* 큰 본문에 맞춰 살짝 확장 */
+    max-height: 92vh; overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25),
+                0 0 0 6px rgba(156,204,101,0.2);
+    animation: guidePop .45s cubic-bezier(.2,1.5,.4,1);
+    position: relative;
+  }
+  /* 카드 위쪽 데코 점들 */
+  .guide-card::before, .guide-card::after {
+    content: ""; position: absolute;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    opacity: 0.85;
+  }
+  .guide-card::before {
+    top: -14px; left: 36px;
+    background: var(--berry-pink);
+  }
+  .guide-card::after {
+    top: -14px; right: 36px;
+    background: var(--sun-yellow);
+  }
+  @keyframes guidePop {
+    0%   { transform: scale(0.5) rotate(-6deg); opacity: 0; }
+    60%  { transform: scale(1.05) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  .guide-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .guide-header h2 {
+    margin: 0;
+    font-family: 'Jua', sans-serif;
+    font-size: 34px;                     /* 24px → 34px */
+    color: var(--leaf-deep);
+    text-shadow: 2px 2px 0 #fff;
+  }
+  .guide-close {
+    background: var(--berry-pink);
+    color: var(--berry-deep);
+    border: 2px solid var(--berry-deep);
+    border-radius: 50%;
+    width: 40px; height: 40px;           /* 32 → 40 */
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--berry-deep);
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    transition: transform .1s;
+  }
+  .guide-close:hover { transform: rotate(90deg); }
+  .guide-close:active { transform: translateY(2px); box-shadow: 0 0 0 var(--berry-deep); }
+
+  /* 단계 카드들 */
+  .guide-steps {
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .guide-step {
+    display: flex; align-items: center; gap: 20px;
+    padding: 22px 28px;
+    border-radius: 22px;
+    border: 2.5px solid;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06);
+    transition: transform .15s;
+  }
+  .guide-step:hover { transform: translateX(4px); }
+  .step-num {
+    font-family: 'Jua', sans-serif;
+    font-size: 44px;                     /* 30 → 44 */
+    flex-shrink: 0;
+    width: 50px;
+    text-align: center;
+    line-height: 1;
+  }
+  .step-icon {
+    font-size: 36px;                     /* 26 → 36 */
+    flex-shrink: 0;
+    animation: stepWiggle 2.4s ease-in-out infinite;
+  }
+  .step-text {
+    margin: 0;
+    font-family: 'Jua', sans-serif;
+    font-size: 40px;                     /* 20 → 40 (30pt) */
+    color: var(--dark-text);
+    line-height: 1.45;
+    word-break: keep-all;                /* 한국어 단어 단위 줄바꿈 (자연스러움) */
+  }
+  @keyframes stepWiggle {
+    0%,100% { transform: rotate(-3deg); }
+    50%     { transform: rotate(3deg); }
+  }
+  /* 단계별 파스텔 컬러 */
+  .step-pink {
+    background: #FFF0F5;
+    border-color: var(--berry-pink);
+  }
+  .step-pink .step-num { color: var(--berry-deep); }
+  .step-yellow {
+    background: #FFFBEB;
+    border-color: #FFE082;
+  }
+  .step-yellow .step-num { color: #E0884A; }
+  .step-green {
+    background: var(--leaf-light);
+    border-color: var(--leaf-mid);
+  }
+  .step-green .step-num { color: var(--leaf-deep); }
+  .step-blue {
+    background: #E3F2FD;
+    border-color: #90CAF9;
+  }
+  .step-blue .step-num { color: #1976D2; }
+
+  /* 단계 등장 시 순차 등장 애니메이션 */
+  .guide-modal.show .guide-step {
+    animation: stepFadeIn .4s ease-out backwards;
+  }
+  .guide-modal.show .guide-step:nth-child(1) { animation-delay: 0.15s; }
+  .guide-modal.show .guide-step:nth-child(2) { animation-delay: 0.28s; }
+  .guide-modal.show .guide-step:nth-child(3) { animation-delay: 0.41s; }
+  .guide-modal.show .guide-step:nth-child(4) { animation-delay: 0.54s; }
+  @keyframes stepFadeIn {
+    0%   { transform: translateX(-30px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+
+  /* ===== 작은 경고 토스트 (그림 2종류 제한 안내) ===== */
+  .toast {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-140%);
+    background: linear-gradient(135deg, #FFE082 0%, #F8BBD0 100%);
+    border: 3px solid #fff;
+    border-radius: 22px;
+    padding: 10px 22px;
+    font-family: 'Jua', sans-serif;
+    font-size: 16px;
+    color: var(--dark-text);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18),
+                0 0 0 4px rgba(248,187,208,0.35);
+    z-index: 1200;
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0;
+    transition: transform .35s cubic-bezier(.2,1.4,.4,1), opacity .25s ease;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+  .toast .icon {
+    display: inline-block;
+    font-size: 18px;
+    vertical-align: middle;
+    margin-right: 6px;
+    animation: wiggle 0.6s ease-in-out infinite;
+  }
+  @keyframes wiggle {
+    0%,100% { transform: rotate(-10deg); }
+    50%     { transform: rotate(10deg); }
+  }
+
+  /* ===== 확인 결과 팝업 ===== */
+  .check-popup {
+    position: fixed; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    z-index: 1100;
+    pointer-events: none;
+    background: rgba(255, 251, 240, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .check-popup.show { display: flex; }
+  .check-card {
+    background: linear-gradient(135deg, #FFE082 0%, #DCEDC8 50%, #B8E0A0 100%);
+    border: 5px solid #fff;
+    border-radius: 32px;
+    padding: 26px 38px;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(124,179,66,0.35),
+                0 0 0 4px rgba(156,204,101,0.3);
+    animation: popInBounce .5s cubic-bezier(.2,1.6,.4,1);
+    position: relative;
+    max-width: 90vw;
+  }
+  .check-card::before, .check-card::after {
+    content: ""; position: absolute;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--berry-pink);
+    opacity: 0.8;
+  }
+  .check-card::before { top: -14px; left: 30px; }
+  .check-card::after  { bottom: -14px; right: 30px; background: var(--sun-yellow); }
+  .check-icon {
+    font-size: 44px;
+    margin-bottom: 6px;
+    animation: bounce 1s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0) scale(1); }
+    50%     { transform: translateY(-8px) scale(1.08); }
+  }
+  .check-line1 {
+    font-family: 'Jua', sans-serif;
+    font-size: 28px;
+    color: var(--dark-text);
+    margin-bottom: 6px;
+    text-shadow: 2px 2px 0 #fff;
+  }
+  .check-line2 {
+    font-family: 'Gaegu', cursive;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--soil-brown);
+  }
+  @keyframes popInBounce {
+    0%   { transform: scale(0.3) rotate(-12deg); opacity: 0; }
+    60%  { transform: scale(1.1) rotate(3deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+
+  /* 작은 화면 폰트 줄이기 */
+  @media (max-width: 500px) {
+    header h1 { font-size: 28px; }
+    .panel h2 { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 배경 잎사귀 장식 -->
+<div class="bg-deco" aria-hidden="true">
+  <span>🍃</span><span>🌿</span><span>🍃</span><span>🌱</span><span>🌿</span><span>🍃</span>
+</div>
+
+<header>
+  <h1><span class="sprout">🌱</span> 도란도란 10 모으기</h1>
+  <p>나만의 이야기로 10을 모아보세요! </p>
+</header>
+
+<main>
+  <!-- 좌측: 팔레트 + 10프레임 -->
+  <section class="panel" aria-label="이미지 팔레트와 10프레임">
+    <h2>🎨 그림으로 표현해요</h2>
+    <div class="cat-tabs" id="catTabs"></div>
+    <div class="palette" id="palette"></div>
+
+    <div class="ten-frame-wrap">
+      <h2 style="margin-bottom:10px;">십 배열판</h2>
+      <div class="ten-frame" id="tenFrame"></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-reset" id="btnReset">🔄 다시하기</button>
+    </div>
+  </section>
+
+  <!-- 우측: 모으기판 + 숫자패드 -->
+  <section class="panel right" aria-label="모으기판과 숫자 패드">
+    <h2>🔢 숫자로 표현해요</h2>
+    <div class="bond-wrap">
+      <svg class="bond-svg" viewBox="0 0 360 310" xmlns="http://www.w3.org/2000/svg">
+        <!-- 연결선 (Y자) -->
+        <line class="bond-line" x1="80" y1="130" x2="180" y2="180"/>
+        <line class="bond-line" x1="280" y1="130" x2="180" y2="180"/>
+
+        <!-- 좌상단 박스 -->
+        <rect class="bond-rect" id="rectA" x="10" y="10" width="140" height="120" rx="14" ry="14" data-key="a"/>
+        <text class="bond-text" id="textA" x="80" y="70">·</text>
+
+        <!-- 우상단 박스 -->
+        <rect class="bond-rect" id="rectB" x="210" y="10" width="140" height="120" rx="14" ry="14" data-key="b"/>
+        <text class="bond-text" id="textB" x="280" y="70">·</text>
+
+        <!-- 하단 박스 (전체) -->
+        <rect class="bond-rect" id="rectC" x="110" y="180" width="140" height="120" rx="14" ry="14" data-key="c"/>
+        <text class="bond-text" id="textC" x="180" y="240">·</text>
+      </svg>
+    </div>
+
+    <div class="num-cards-wrap">
+      <div class="num-cards" id="numCards">
+        <div class="num-card" data-num="1" draggable="false">1</div>
+        <div class="num-card" data-num="2" draggable="false">2</div>
+        <div class="num-card" data-num="3" draggable="false">3</div>
+        <div class="num-card" data-num="4" draggable="false">4</div>
+        <div class="num-card" data-num="5" draggable="false">5</div>
+        <div class="num-card" data-num="6" draggable="false">6</div>
+        <div class="num-card" data-num="7" draggable="false">7</div>
+        <div class="num-card" data-num="8" draggable="false">8</div>
+        <div class="num-card" data-num="9" draggable="false">9</div>
+        <div class="num-card" data-num="10" draggable="false">10</div>
+      </div>
+      <button class="btn-check" id="btnCheck">✅ 확인하기</button>
+    </div>
+  </section>
+</main>
+
+<!-- 💡 활동 방법 버튼: body 직속 자식으로 두어 stacking context 갇히지 않게 -->
+<button class="btn-guide" id="btnGuide" aria-label="활동 방법 보기">
+  <span class="bulb">💡</span><span class="label">활동 방법</span>
+</button>
+
+<!-- ✕ 앱 닫기 버튼: 우측 상단 -->
+<button class="btn-close" id="btnClose" aria-label="앱 닫기">✕</button>
+
+<div class="celebrate-banner" id="celebrate" aria-hidden="true">
+  <div class="msg">🎉 와! 10 모으기 성공! 🎉</div>
+</div>
+
+<div class="check-popup" id="checkPopup" aria-hidden="true">
+  <div class="check-card">
+    <div class="check-icon">🌱✨</div>
+    <div class="check-line1" id="checkLine1">10을 잘 모았어요!</div>
+    <div class="check-line2" id="checkLine2">짝에게 나의 10을 설명해봅시다 💚</div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="icon">🌈</span><span id="toastText">그림은 2종류만 사용 가능해요!</span>
+</div>
+
+<div class="guide-modal" id="guideModal" aria-hidden="true">
+  <div class="guide-card" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="guide-header">
+      <h2 id="guideTitle">💡 활동 방법</h2>
+      <button class="guide-close" id="guideClose" aria-label="활동 방법 닫기">✕</button>
+    </div>
+    <div class="guide-steps">
+      <div class="guide-step step-pink">
+        <span class="step-num">①</span>
+        <span class="step-icon">🎨</span>
+        <p class="step-text">십 배열판으로 모아서 10이 되도록 그림으로 표현해요.</p>
+      </div>
+      <div class="guide-step step-yellow">
+        <span class="step-num">②</span>
+        <span class="step-icon">🔢</span>
+        <p class="step-text">수 모으기판에 숫자 카드를 넣어서 10이 되는 짝꿍수를 입력해요.</p>
+      </div>
+      <div class="guide-step step-green">
+        <span class="step-num">③</span>
+        <span class="step-icon">💬</span>
+        <p class="step-text">짝에게 모아서 10이 되는 짝꿍수 이야기를 설명해요.</p>
+      </div>
+      <div class="guide-step step-blue">
+        <span class="step-num">④</span>
+        <span class="step-icon">❓</span>
+        <p class="step-text">짝은 친구가 만든 10에 대해 궁금한 것을 질문해요.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===========================================================
+   🌱 도란도란 10 모으기 - 메인 스크립트
+   =========================================================== */
+
+/* ---------- 데이터: 카테고리별 이모지 (각 6개) ---------- */
+const CATEGORIES = {
+  '동물': ['🐶','🐱','🐰','🐢','🐋','🦈'],
+  '식물': ['🌱','🌷','🌻','🍀','🌼','🌳'],
+  '과일': ['🍎','🍌','🍓','🍇','🍊','🍉'],
+  '문구': ['✏️','📚','🖍️','📏','✂️','🎒']
+};
+
+/* ---------- 상태 ---------- */
+const state = {
+  category: '동물',
+  frame: Array(10).fill(null), // 10칸: null 또는 emoji
+  bond: { a: null, b: null, c: null },
+};
+
+/* ---------- 헬퍼 ---------- */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* ============================================================
+   1) 카테고리 탭 + 팔레트 렌더링
+   ============================================================ */
+function renderTabs() {
+  const tabs = $('#catTabs');
+  tabs.innerHTML = '';
+  Object.keys(CATEGORIES).forEach(cat => {
+    const b = document.createElement('button');
+    b.textContent = cat;
+    b.className = (cat === state.category) ? 'active' : '';
+    b.onclick = () => { state.category = cat; renderTabs(); renderPalette(); };
+    tabs.appendChild(b);
+  });
+}
+function renderPalette() {
+  const pal = $('#palette');
+  pal.innerHTML = '';
+  CATEGORIES[state.category].forEach(emoji => {
+    const div = document.createElement('div');
+    div.className = 'palette-item';
+    div.textContent = emoji;
+    div.dataset.emoji = emoji;
+    pal.appendChild(div);
+  });
+}
+
+/* ============================================================
+   2) 10 프레임 렌더링
+   ============================================================ */
+function renderFrame() {
+  const frame = $('#tenFrame');
+  frame.innerHTML = '';
+  state.frame.forEach((val, i) => {
+    const c = document.createElement('div');
+    c.className = 'cell' + (val ? ' filled' : '');
+    c.dataset.idx = i;
+    c.textContent = val || '';
+    // 클릭하면 비우기
+    if (val) {
+      c.addEventListener('click', () => {
+        state.frame[i] = null;
+        renderFrame();
+      });
+    }
+    frame.appendChild(c);
+  });
+}
+
+/* ============================================================
+   3) 드래그 앤 드롭 + 자석 스냅
+   ============================================================ */
+let drag = null; // { ghost, type, ...payload }
+
+function startDrag(e, emoji, sourceIdx = null) {
+  if (drag) return;
+  e.preventDefault();
+  const pt = getPoint(e);
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.textContent = emoji;
+  document.body.appendChild(ghost);
+  ghost.style.left = pt.x + 'px';
+  ghost.style.top  = pt.y + 'px';
+  drag = { ghost, type: 'emoji', emoji, sourceIdx };
+
+  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointerup',   onDragEnd);
+  document.addEventListener('pointercancel', onDragEnd);
+}
+
+function onDragMove(e) {
+  if (!drag) return;
+  const pt = getPoint(e);
+  drag.ghost.style.left = pt.x + 'px';
+  drag.ghost.style.top  = pt.y + 'px';
+  highlightSnap(pt);
+}
+
+function onDragEnd(e) {
+  if (!drag) return;
+  const pt = getPoint(e);
+
+  if (drag.type === 'emoji') {
+    // ----- 그림: 10 배열판 셀로 스냅 -----
+    const target = findSnapTarget(pt);
+    if (target !== -1) {
+      // 학습 제약: 그림 2종류 초과 차단
+      if (!canPlaceEmoji(drag.emoji, drag.sourceIdx)) {
+        showToast('그림은 2종류만 사용 가능해요!');
+      } else {
+        state.frame[target] = drag.emoji;
+        if (drag.sourceIdx !== null && drag.sourceIdx !== target) {
+          state.frame[drag.sourceIdx] = null;
+        }
+        renderFrame();
+        if (state.frame.every(v => v !== null)) celebrate();
+      }
+    }
+  } else if (drag.type === 'number') {
+    // ----- 숫자 카드: 모으기판 박스로 스냅 -----
+    const targetKey = findBondTarget(pt);
+    if (targetKey) {
+      state.bond[targetKey] = drag.value;
+      renderBond();
+    }
+  }
+
+  // 공통 정리
+  drag.ghost.remove();
+  $$('.cell.snap-target').forEach(c => c.classList.remove('snap-target'));
+  $$('.bond-rect.snap-target').forEach(r => r.classList.remove('snap-target'));
+  drag = null;
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup',   onDragEnd);
+  document.removeEventListener('pointercancel', onDragEnd);
+}
+
+function getPoint(e) { return { x: e.clientX, y: e.clientY }; }
+
+/* ============================================================
+   3-2) 학습 제약: 그림은 2종류까지만 사용
+   ============================================================ */
+/**
+ * 새 emoji를 sourceIdx 위치에서 옮겨/추가하려고 할 때 허용되는지 판정.
+ * @param {string} emoji 놓으려는 이모지
+ * @param {number|null} sourceIdx 이동 출발 칸 (없으면 null)
+ * @returns {boolean}
+ */
+function canPlaceEmoji(emoji, sourceIdx) {
+  // 출발 칸은 곧 비워질 것이므로 distinct 계산에서 제외
+  const distinct = new Set();
+  state.frame.forEach((v, i) => {
+    if (v === null) return;
+    if (i === sourceIdx) return;
+    distinct.add(v);
+  });
+  // 이미 같은 종류가 frame에 있으면 OK
+  if (distinct.has(emoji)) return true;
+  // 새 종류라면 distinct count < 2 일 때만 추가 가능
+  return distinct.size < 2;
+}
+
+/* 작은 경고 토스트 */
+let toastTimer = null;
+function showToast(message = '그림은 2종류만 사용 가능해요!') {
+  const t = $('#toast');
+  $('#toastText').textContent = message;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    t.classList.remove('show');
+  }, 2000);
+}
+
+/** 자석 스냅: 60px 반경 이내 가장 가까운 빈 칸 찾기 */
+function findSnapTarget(pt, radius = 60) {
+  const cells = $$('.cell');
+  let best = -1, bestDist = Infinity;
+  cells.forEach((cell, i) => {
+    if (state.frame[i] !== null && i !== (drag && drag.sourceIdx)) return; // 채워져 있으면 무시 (자기 자신 제외)
+    const r = cell.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top  + r.height / 2;
+    const d = Math.hypot(pt.x - cx, pt.y - cy);
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+  return bestDist <= radius ? best : -1;
+}
+
+function highlightSnap(pt) {
+  // 모든 기존 하이라이트 클리어
+  $$('.cell.snap-target').forEach(c => c.classList.remove('snap-target'));
+  $$('.bond-rect.snap-target').forEach(r => r.classList.remove('snap-target'));
+
+  if (!drag) return;
+
+  if (drag.type === 'emoji') {
+    const idx = findSnapTarget(pt);
+    if (idx !== -1) {
+      const cell = $$('.cell')[idx];
+      if (cell) cell.classList.add('snap-target');
+    }
+  } else if (drag.type === 'number') {
+    const key = findBondTarget(pt);
+    if (key) {
+      const rect = document.getElementById('rect' + key.toUpperCase());
+      if (rect) rect.classList.add('snap-target');
+    }
+  }
+}
+
+/* 팔레트 → 드래그 시작 (시작 전에도 2종류 검증) */
+document.addEventListener('pointerdown', (e) => {
+  const item = e.target.closest('.palette-item');
+  if (item) {
+    const emoji = item.dataset.emoji;
+    if (!canPlaceEmoji(emoji, null)) {
+      // 즉시 차단 + 안내
+      showToast('그림은 2종류만 사용 가능해요!');
+      return;
+    }
+    startDrag(e, emoji, null);
+  }
+});
+
+/* ============================================================
+   4) 모으기판 박스 — 클릭 시 값 비우기 (지우기 기능)
+   ============================================================ */
+$$('.bond-rect').forEach(r => {
+  r.addEventListener('click', () => {
+    const key = r.dataset.key;
+    state.bond[key] = null;
+    renderBond();
+  });
+});
+
+/* ============================================================
+   5) 숫자 카드 드래그 → 모으기판 박스로 자석 스냅
+   ============================================================ */
+function renderBond() {
+  $('#textA').textContent = state.bond.a === null ? '·' : state.bond.a;
+  $('#textB').textContent = state.bond.b === null ? '·' : state.bond.b;
+  $('#textC').textContent = state.bond.c === null ? '·' : state.bond.c;
+}
+
+/* 박스 셋 중 가장 가까운 박스 키 반환 (반경 80px) */
+function findBondTarget(pt, radius = 80) {
+  let best = null, bestDist = Infinity;
+  ['a','b','c'].forEach(key => {
+    const rect = document.getElementById('rect' + key.toUpperCase());
+    if (!rect) return;
+    const r = rect.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top  + r.height / 2;
+    const d = Math.hypot(pt.x - cx, pt.y - cy);
+    if (d < bestDist) { bestDist = d; best = key; }
+  });
+  return bestDist <= radius ? best : null;
+}
+
+/* 숫자 카드 드래그 시작 */
+function startNumberDrag(e, num) {
+  if (drag) return;
+  e.preventDefault();
+  const pt = getPoint(e);
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.textContent = num;
+  ghost.style.fontFamily = "'Jua', sans-serif";
+  ghost.style.color = 'var(--leaf-deep)';
+  document.body.appendChild(ghost);
+  ghost.style.left = pt.x + 'px';
+  ghost.style.top  = pt.y + 'px';
+  drag = { ghost, type: 'number', value: num };
+
+  document.addEventListener('pointermove', onDragMove);
+  document.addEventListener('pointerup',   onDragEnd);
+  document.addEventListener('pointercancel', onDragEnd);
+}
+
+/* 숫자 카드 → pointerdown 시 드래그 시작 */
+document.addEventListener('pointerdown', (e) => {
+  const card = e.target.closest('.num-card');
+  if (card && !drag) {
+    const num = parseInt(card.dataset.num, 10);
+    startNumberDrag(e, num);
+  }
+});
+
+/* 모으기판 박스 흔들기 힌트 (확인 버튼 오답 시) */
+function flashBondHint() {
+  $$('.bond-rect').forEach(r => {
+    r.animate(
+      [{ transform: 'translateX(0)' }, { transform: 'translateX(-4px)' },
+       { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }],
+      { duration: 280, iterations: 1 }
+    );
+  });
+}
+
+/* ============================================================
+   6) 보조 버튼: 다시하기
+   ============================================================ */
+$('#btnReset').addEventListener('click', () => {
+  state.frame = Array(10).fill(null);
+  state.bond = { a: null, b: null, c: null };
+  renderFrame();
+  renderBond();
+});
+
+/* ============================================================
+   6-2) 확인하기 버튼 — 그림과 숫자 매칭 검증
+       (그림 종류별 개수 기준으로 매칭; 시각 위치 무관)
+   ============================================================ */
+function checkMatch() {
+  // 10 배열판의 그림 종류별 개수 집계
+  const counts = {};
+  state.frame.forEach(v => {
+    if (v !== null) counts[v] = (counts[v] || 0) + 1;
+  });
+  const partCounts = Object.values(counts).sort((x, y) => x - y); // 오름차순
+  const total = partCounts.reduce((s, n) => s + n, 0);
+
+  const { a, b, c } = state.bond;
+
+  if (a === null || b === null || c === null)
+    return { ok: false, reason: 'incomplete' };
+  if (total === 0)
+    return { ok: false, reason: 'empty_frame' };
+  if (c !== total)
+    return { ok: false, reason: 'wrong_total' };
+
+  // 기대되는 두 부분 (그림 종류별 카운트)
+  // - 1종류만 있으면 (0, n) 형태로 표현 → bond에 0과 n이 들어가야 정답
+  // - 2종류이면 [smaller, larger]가 그대로 기대값
+  let expectedParts;
+  if (partCounts.length === 1) {
+    expectedParts = [0, partCounts[0]];
+  } else if (partCounts.length === 2) {
+    expectedParts = partCounts;
+  } else {
+    // 3종류 이상은 학습 제약상 발생하지 않지만 방어 코드
+    return { ok: false, reason: 'wrong_parts' };
+  }
+
+  // {a, b}를 정렬해서 멀티셋 비교 (왼쪽/오른쪽 무관)
+  const sortedAB = [a, b].sort((x, y) => x - y);
+  const matchParts =
+    sortedAB[0] === expectedParts[0] && sortedAB[1] === expectedParts[1];
+
+  return matchParts ? { ok: true, total } : { ok: false, reason: 'wrong_parts' };
+}
+
+function showCheckPopup(line1, line2) {
+  const p = $('#checkPopup');
+  $('#checkLine1').textContent = line1;
+  $('#checkLine2').textContent = line2;
+  p.classList.add('show');
+  // 팝업이 열려있는 동안 새 클릭 무시(중복 방지)
+  $('#btnCheck').disabled = true;
+  setTimeout(() => {
+    p.classList.remove('show');
+    $('#btnCheck').disabled = false;
+  }, 3000);
+}
+
+$('#btnCheck').addEventListener('click', () => {
+  const r = checkMatch();
+  if (r.ok) {
+    if (r.total === 10) {
+      showCheckPopup('10을 잘 모았어요!', '짝에게 나의 10을 설명해봅시다 💚');
+    } else {
+      showCheckPopup(`${r.total}을 잘 모았어요!`, '짝에게 나의 수를 설명해봅시다 💚');
+    }
+  } else {
+    // 잘못된 경우: 부드러운 힌트
+    flashBondHint();
+    let line1, line2;
+    if (r.reason === 'incomplete')   { line1 = '숫자를 모두 적어볼까요?'; line2 = '세 칸 모두 채워주세요 ✏️'; }
+    else if (r.reason === 'empty_frame'){ line1 = '먼저 그림을 채워볼까요?'; line2 = '십 배열판에 그림을 놓아주세요 🌱'; }
+    else                              { line1 = '다시 한 번 살펴볼까요?'; line2 = '그림과 숫자를 비교해 봐요 🔍'; }
+    showCheckPopup(line1, line2);
+  }
+});
+
+/* ============================================================
+   7) 10 달성 축하 효과
+   ============================================================ */
+function celebrate() {
+  const banner = $('#celebrate');
+  banner.classList.add('show');
+  // 색종이
+  const emojis = ['🌟','✨','🌸','🍀','🌻','🎉','💚','🌱'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('span');
+    c.className = 'confetti';
+    c.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.animationDuration = (1.6 + Math.random()*1.6) + 's';
+    c.style.animationDelay = (Math.random()*0.4) + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
+  setTimeout(() => banner.classList.remove('show'), 2400);
+}
+
+/* ============================================================
+   8) 채워진 셀에서 다시 드래그하기 (선택)
+   ============================================================ */
+document.addEventListener('pointerdown', (e) => {
+  const cell = e.target.closest('.cell.filled');
+  if (cell && !drag) {
+    const idx = parseInt(cell.dataset.idx, 10);
+    const emoji = state.frame[idx];
+    if (!emoji) return;
+    // 길게 누르지 않고 즉시 드래그 (어린 학생 친화적)
+    // 단, 클릭으로 제거하는 동작과 충돌하지 않도록 약간의 임계 이동 후 시작
+    let started = false;
+    const startPt = getPoint(e);
+    const moveCheck = (ev) => {
+      const p = getPoint(ev);
+      if (!started && Math.hypot(p.x-startPt.x, p.y-startPt.y) > 6) {
+        started = true;
+        // 시작
+        document.removeEventListener('pointermove', moveCheck);
+        document.removeEventListener('pointerup', upCheck);
+        // 원래 칸은 비우고 시작
+        state.frame[idx] = null;
+        renderFrame();
+        startDrag(ev, emoji, null);
+      }
+    };
+    const upCheck = () => {
+      document.removeEventListener('pointermove', moveCheck);
+      document.removeEventListener('pointerup', upCheck);
+    };
+    document.addEventListener('pointermove', moveCheck);
+    document.addEventListener('pointerup', upCheck);
+  }
+});
+
+/* ============================================================
+   9) 💡 활동 방법 모달 — 열기/닫기 핸들러
+   ============================================================ */
+function openGuide() {
+  $('#guideModal').classList.add('show');
+  $('#guideModal').setAttribute('aria-hidden', 'false');
+  // 닫기 버튼에 자동 포커스 (접근성)
+  setTimeout(() => $('#guideClose').focus(), 100);
+}
+function closeGuide() {
+  $('#guideModal').classList.remove('show');
+  $('#guideModal').setAttribute('aria-hidden', 'true');
+}
+
+$('#btnGuide').addEventListener('click', openGuide);
+$('#guideClose').addEventListener('click', closeGuide);
+
+/* ✕ 앱 닫기 버튼 — window.close() 시도 */
+$('#btnClose').addEventListener('click', () => {
+  window.close();
+});
+
+// 모달 외부(어두운 배경) 클릭 시 닫기
+$('#guideModal').addEventListener('click', (e) => {
+  if (e.target.id === 'guideModal') closeGuide();
+});
+
+// ESC 키로 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && $('#guideModal').classList.contains('show')) {
+    closeGuide();
+  }
+});
+
+/* ============================================================
+   10) 초기 렌더 + 셀프 테스트 (TDD 검증)
+   ============================================================ */
+function selfTest() {
+  const log = [];
+  const assert = (cond, name) => log.push((cond ? '✅' : '❌') + ' ' + name);
+
+  // T1
+  assert($$('#catTabs button').length === 4, 'T1.1 카테고리 탭 4개 (문구/과일/동물/식물)');
+  assert($$('.palette-item').length === 6, 'T1.2 팔레트 아이템 정확히 6개');
+
+  // T2
+  assert($$('.cell').length === 10, 'T2.1 10프레임 10칸');
+
+  // T4
+  assert($$('.bond-rect').length === 3, 'T4.1 모으기판 3개 박스');
+
+  // T5
+  // T5 (숫자 카드)
+  assert($$('.num-card').length === 10, 'T5.1 숫자 카드 10개 (1~10)');
+  assert(typeof findBondTarget === 'function', 'T5.2 findBondTarget() 함수 정의');
+  assert(typeof startNumberDrag === 'function', 'T5.3 startNumberDrag() 함수 정의');
+
+  // T_findSnapTarget: 가운데 좌표 → 가까운 셀 인덱스 반환
+  const cellRects = $$('.cell').map(c => c.getBoundingClientRect());
+  if (cellRects.length === 10) {
+    const r0 = cellRects[0];
+    const idx = findSnapTarget({ x: r0.left + r0.width/2, y: r0.top + r0.height/2 });
+    assert(idx === 0, 'T3.1 셀 중앙 좌표 → 인덱스 0');
+  }
+
+  // T6 활동 방법 모달
+  assert(!!$('#btnGuide'), 'T6.1 💡 활동 방법 버튼 존재');
+  assert(!!$('#guideModal'), 'T6.2 활동 방법 모달 존재');
+  assert($$('.guide-step').length === 4, 'T6.3 4단계 카드 존재');
+  assert($('.guide-step').textContent.includes('십 배열판'), 'T6.4 1단계 텍스트 포함');
+  assert(typeof openGuide === 'function' && typeof closeGuide === 'function',
+         'T6.5 열기/닫기 함수 정의');
+
+  // T7 앱 닫기 버튼
+  assert(!!$('#btnClose'), 'T7.1 ✕ 앱 닫기 버튼 존재');
+
+  console.log('%c🧪 셀프 테스트 결과', 'font-weight:bold;color:#7CB342');
+  log.forEach(l => console.log(l));
+  return log;
+}
+
+renderTabs();
+renderPalette();
+renderFrame();
+renderBond();
+
+// 폰트 로딩 후 테스트 (1프레임 뒤)
+window.addEventListener('load', () => {
+  setTimeout(selfTest, 100);
+});
+</script>
+</body>
+</html>
