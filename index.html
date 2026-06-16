@@ -195,8 +195,8 @@
   }
   .ten-frame {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 8px;
     aspect-ratio: 5 / 2;
     width: 100%;
@@ -211,6 +211,9 @@
     font-size: clamp(28px, 4.4vw, 56px);
     transition: background .15s, border .15s, transform .15s, box-shadow .15s;
     cursor: pointer;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
   }
   .cell.filled {
     background: var(--cream-deep);
@@ -558,9 +561,23 @@
     border-radius: 22px;
     border: 2.5px solid;
     box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-    transition: transform .15s;
+    transition: transform .2s, filter .2s, box-shadow .2s;
+    cursor: pointer;
+    user-select: none;
   }
-  .guide-step:hover { transform: translateX(4px); }
+  /* 가려진 상태: 호버 시 살짝 떠오름 (클릭 가능 시그널) */
+  .guide-step:not(.revealed):hover {
+    transform: translateY(-3px) scale(1.01);
+    filter: brightness(1.04);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.10);
+  }
+  /* 공개된 상태: 커서 normal, 호버 효과 없음 */
+  .guide-step.revealed {
+    cursor: default;
+  }
+  .guide-step.revealed:hover {
+    transform: translateX(4px);
+  }
   .step-num {
     font-family: 'Jua', sans-serif;
     font-size: 44px;                     /* 30 → 44 */
@@ -581,6 +598,20 @@
     color: var(--dark-text);
     line-height: 1.45;
     word-break: keep-all;                /* 한국어 단어 단위 줄바꿈 (자연스러움) */
+    position: relative;
+    flex: 1;
+  }
+  /* 가려진 상태: 텍스트만 숨김 (영역은 유지) */
+  .guide-step:not(.revealed) .step-text {
+    visibility: hidden;
+  }
+  /* 공개될 때 부드러운 페이드 인 */
+  .guide-step.revealed .step-text {
+    animation: textReveal 0.4s ease-out;
+  }
+  @keyframes textReveal {
+    0%   { opacity: 0; transform: translateY(-4px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
   @keyframes stepWiggle {
     0%,100% { transform: rotate(-3deg); }
@@ -1326,6 +1357,8 @@ document.addEventListener('pointerdown', (e) => {
 function openGuide() {
   $('#guideModal').classList.add('show');
   $('#guideModal').setAttribute('aria-hidden', 'false');
+  // 단계 카드 상태 초기화: 모두 가린 상태로 (다시 열 때마다 처음부터)
+  $$('.guide-step').forEach(s => s.classList.remove('revealed'));
   // 닫기 버튼에 자동 포커스 (접근성)
   setTimeout(() => $('#guideClose').focus(), 100);
 }
@@ -1333,6 +1366,13 @@ function closeGuide() {
   $('#guideModal').classList.remove('show');
   $('#guideModal').setAttribute('aria-hidden', 'true');
 }
+
+/* 단계 카드 클릭 → 그 단계 텍스트 공개 */
+$$('.guide-step').forEach(step => {
+  step.addEventListener('click', () => {
+    step.classList.add('revealed');
+  });
+});
 
 $('#btnGuide').addEventListener('click', openGuide);
 $('#guideClose').addEventListener('click', closeGuide);
@@ -1392,6 +1432,15 @@ function selfTest() {
   assert($('.guide-step').textContent.includes('십 배열판'), 'T6.4 1단계 텍스트 포함');
   assert(typeof openGuide === 'function' && typeof closeGuide === 'function',
          'T6.5 열기/닫기 함수 정의');
+  assert($$('.guide-step.revealed').length === 0,
+         'T6.6 초기 상태: 모든 단계가 가려진 상태');
+  // T6.7: 단계 카드 클릭 시뮬레이션 → revealed 클래스 추가 확인
+  const firstStep = $('.guide-step');
+  firstStep.click();
+  assert(firstStep.classList.contains('revealed'),
+         'T6.7 단계 클릭 시 revealed 클래스 추가');
+  // 다시 가린 상태로 초기화 (다른 테스트 영향 방지)
+  $$('.guide-step').forEach(s => s.classList.remove('revealed'));
 
   // T7 앱 닫기 버튼
   assert(!!$('#btnClose'), 'T7.1 ✕ 앱 닫기 버튼 존재');
